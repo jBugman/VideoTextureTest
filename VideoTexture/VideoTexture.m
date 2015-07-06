@@ -36,6 +36,16 @@ id<MTLTexture> loadTexture(NSString *imageName) {
     return texture;
 }
 
+uintptr_t loadNativeTexture(const char *imageName) {
+    NSString *name = [NSString stringWithUTF8String:imageName];
+    return (uintptr_t)(__bridge_retained void*) loadTexture(name);
+}
+
+void destroyTexture(uintptr_t textureId) {
+    id<MTLTexture> mtltex = (__bridge_transfer id<MTLTexture>)(void*) textureId;
+    mtltex = nil;
+}
+
 int* doSomething(int x) {
     loadTexture(@"texture.png");
     int* result = (int*)malloc(sizeof(int));

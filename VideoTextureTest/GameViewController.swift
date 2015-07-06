@@ -10,11 +10,12 @@ import UIKit
 import Metal
 import QuartzCore
 
+
 let vertexData:[Float] = [
-    -0.8, 0.8, 0.0,
-    0.8, 0.8, 0.0,
-    -0.8, -0.8, 0.0,
-    0.8, -0.8, 0.0
+    -1, 1, 0,
+    1, 1, 0,
+    -1, -1, 0,
+    1, -1, 0
 ]
 
 class GameViewController: UIViewController {
@@ -27,15 +28,18 @@ class GameViewController: UIViewController {
     var pipelineState: MTLRenderPipelineState! = nil
     var vertexBuffer: MTLBuffer! = nil
 
+    var texture: MTLTexture! = nil
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         metalLayer.device = device
         metalLayer.pixelFormat = .BGRA8Unorm
         metalLayer.framebufferOnly = true
         metalLayer.frame = view.layer.frame
         view.layer.addSublayer(metalLayer)
+
+        texture = loadTexture("texture.png")
 
         let dataSize = vertexData.count * sizeofValue(vertexData[0])
         vertexBuffer = device.newBufferWithBytes(vertexData, length: dataSize, options: nil)
@@ -43,9 +47,9 @@ class GameViewController: UIViewController {
         view.opaque = true
 
         let defaultLibrary = device.newDefaultLibrary()
-        let fragmentProgram = defaultLibrary?.newFunctionWithName("basic_fragment")
-        let vertexProgram = defaultLibrary?.newFunctionWithName("basic_vertex")
-        
+        let vertexProgram = defaultLibrary?.newFunctionWithName("texturedQuadVertex")
+        let fragmentProgram = defaultLibrary?.newFunctionWithName("texturedQuadFragment")
+
         let pipelineStateDescriptor = MTLRenderPipelineDescriptor()
         pipelineStateDescriptor.vertexFunction = vertexProgram
         pipelineStateDescriptor.fragmentFunction = fragmentProgram
@@ -91,6 +95,7 @@ class GameViewController: UIViewController {
         if let renderEncoder = renderEncoderOpt {
             renderEncoder.setRenderPipelineState(pipelineState)
             renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, atIndex: 0)
+            renderEncoder.setFragmentTexture(texture, atIndex: 0)
             renderEncoder.drawPrimitives(.TriangleStrip, vertexStart: 0, vertexCount: 4, instanceCount: 1)
             renderEncoder.endEncoding()
         }

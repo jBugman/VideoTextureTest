@@ -1,20 +1,25 @@
-//
-//  Shaders.metal
-//  HelloMetal
-//
-//  Created by Main Account on 10/2/14.
-//  Copyright (c) 2014 Razeware LLC. All rights reserved.
-//
-
 #include <metal_stdlib>
 using namespace metal;
 
-vertex float4 basic_vertex(                           // 1
-                           const device packed_float3* vertex_array [[ buffer(0) ]], // 2
-                           unsigned int vid [[ vertex_id ]]) {                 // 3
-    return float4(vertex_array[vid], 1.0);              // 4
+struct VertexInOut
+{
+    float4 m_Position [[position]];
+    float2 m_TexCoord [[user(texturecoord)]];
+};
+
+vertex VertexInOut texturedQuadVertex(const device packed_float3* pPosition [[ buffer(0) ]],
+                                                             uint vid       [[ vertex_id ]])
+{
+    VertexInOut outVertices;
+    outVertices.m_Position = float4(0.8 * pPosition[vid], 1);
+    outVertices.m_TexCoord = 0.5 * (outVertices.m_Position.xy + 1);
+    return outVertices;
 }
 
-fragment half4 basic_fragment() { // 1
-    return half4(1.0);              // 2
+fragment half4 texturedQuadFragment(VertexInOut inFrag [[ stage_in ]],
+                               texture2d<half>  tex2D  [[ texture(0) ]])
+{
+    constexpr sampler samplr;
+    half4 color = tex2D.sample(samplr, inFrag.m_TexCoord);
+    return color;
 }

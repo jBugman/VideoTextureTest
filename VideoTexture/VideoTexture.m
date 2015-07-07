@@ -1,8 +1,7 @@
 #import <stdlib.h>
 #import "VideoTexture.h"
 
-id<MTLTexture> loadTexture(NSString *imageName) {
-    UIImage *image = [UIImage imageNamed:imageName];
+id<MTLTexture> _loadTexture(UIImage *image) {
     CGImageRef imageRef = [image CGImage];
     NSUInteger width = CGImageGetWidth(imageRef);
     NSUInteger height = CGImageGetHeight(imageRef);
@@ -36,9 +35,16 @@ id<MTLTexture> loadTexture(NSString *imageName) {
     return texture;
 }
 
+id<MTLTexture> loadTexture(NSString *imageName) {
+    UIImage *image = [UIImage imageNamed:imageName];
+    return _loadTexture(image);
+}
+
 uintptr_t loadNativeTexture(const char *imageName) {
-    NSString *name = [NSString stringWithUTF8String:imageName];
-    return (uintptr_t)(__bridge_retained void*) loadTexture(name);
+    NSString *name = [[NSString stringWithUTF8String:imageName] stringByDeletingPathExtension];
+    NSString* imagePath = [[NSBundle mainBundle] pathForResource: name ofType: @"png"];
+    UIImage *image = [UIImage imageWithContentsOfFile: imagePath];
+    return (uintptr_t)(__bridge_retained void*) _loadTexture(image);
 }
 
 void destroyTexture(uintptr_t textureId) {
